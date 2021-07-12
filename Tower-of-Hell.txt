@@ -2,7 +2,7 @@ if not getgenv().MTAPIMutex then
     loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/MTAPI", true))()
 end
 workspace:AddPropertyEmulator("Gravity")
-local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HAXERINO/this-stuff-scripts/main/ThisStuff-Api-Library.txt", true))()
 local CharacterCheats = library:CreateWindow("Character Cheats")
 local NoDeath =  CharacterCheats:Button("No Death", function(Value)
     game:AddGlobalSetHook("Health")
