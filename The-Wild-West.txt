@@ -128,7 +128,7 @@ local Errors = {
 local SessionErrors = {}
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AbstractPoo/Main/main/Library"))()
-local ESPLibrary = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/ESP", true))()
+local ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/HAXERINO/this-stuff-scripts/main/ThisStuff-ESP.txt", true))()
 local JSON = loadstring(game:HttpGet("https://raw.githubusercontent.com/NoTwistedHere/Storage/main/Other/JSONWithUserdata", true))()
 local Window = Library:Create({
     Name = "The Wild West - ThisStuff.xyz",
