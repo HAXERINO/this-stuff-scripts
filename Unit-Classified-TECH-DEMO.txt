@@ -33,7 +33,7 @@ WeaponClone.Parent = LoadedStorage
 
 getgenv().TSLoaded = true
 
-local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HAXERINO/this-stuff-scripts/main/ThisStuff-Api-Library.txt", true))()
 
 local MainFolder = library:CreateWindow("Random")
 
