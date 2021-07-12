@@ -1,7 +1,7 @@
 local function StarterPlace()
     OwnAllDLC = false
 
-    local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+    local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HAXERINO/this-stuff-scripts/main/ThisStuff-Api-Library.txt", true))()
     local LocalCheats = library:CreateWindow("Local Cheats")
     LocalCheats:Toggle("All DLCs", function(Value)
         OwnAllDLC = Value
@@ -39,7 +39,7 @@ local function GamePlace()
     GodMode = false
     NoClip = false
 
-    local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+    local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HAXERINO/this-stuff-scripts/main/ThisStuff-Api-Library.txt", true))()
 
     local Malicious = library:CreateWindow("Malicious")
 
