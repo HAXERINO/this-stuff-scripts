@@ -1,0 +1,123 @@
+if game then
+    if not game:IsLoaded() then
+        game:Shutdown()
+    end
+else
+    game:Shutdown()
+end
+
+if getgenv().TSLoaded then
+    return;
+end
+
+pcall(function()
+    for i,v in pairs(getconnections(game:GetService("ScriptContext").Error)) do
+        v:Disable()
+    end
+
+    for i,v in pairs(getconnections(game:GetService("LogService").MessageOut)) do
+        v:Disable()
+    end
+
+    for i,v in pairs(getconnections(game:GetService("Lighting").Changed)) do 
+        v:Disable()
+    end
+end)
+
+getgenv().TSLoaded = true
+
+local LightingAmbient = Color3.new(0, 0, 0)
+local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
+local Settings = {}
+
+local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+local Window = library:CreateWindow("Beginnings 2")
+local LocalCheats = Window:Folder("Local Cheats")
+
+LocalCheats:Toggle("Full Bright", function(Value)
+    if Value == true then
+        LightingAmbient = game:GetService("Lighting").Ambient
+    else
+        game:GetService("Lighting").Ambient = LightingAmbient
+    end
+    Settings.FullBright = Value
+end)
+
+local CharacterCheats = Window:Folder("Character Cheats")
+
+CharacterCheats:Slider("WalkSpeed", 16, 800, function(Value)
+    game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = Value
+end)
+
+CharacterCheats:Slider("JumpPower", 50, 800, function(Value)
+    game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = Value
+end)
+
+CharacterCheats:Toggle("Click Teleport", function(Value)
+    Settings.ClickTeleport = Value
+end)
+
+CharacterCheats:Button("Kill Local Player", function()
+    firetouchinterest(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart, game:GetService("Workspace").Lava, 0)
+end)
+
+
+local SettingsT = library:CreateWindow("Settings")
+SettingsT:Button("Copy Discord Link", function()
+    setclipboard(game:HttpGet("https://thisstuff.xyz/rawdiscord.txt"))
+end)
+
+SettingsT:Button("Rejoin Server", function()
+    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+end)
+
+local get_target = function() -- Credits to unrealskill for making this function (https://v3rmillion.net/showthread.php?tid=620391)
+    local node = CFrame.new(Mouse.UnitRay.Origin)
+    local hits = { }
+    while node do
+        local ray = Mouse.UnitRay
+        ray = Ray.new(ray.Origin, ray.Direction * 1000)
+        local hit, position = workspace:FindPartOnRayWithIgnoreList(ray, {
+            game:GetService("Players").LocalPlayer.Character,
+            unpack(hits)
+        })
+        if hit.Transparency == 0 then
+            return #hits == 0 and Mouse.Hit or CFrame.new(position)
+        end
+        if hit then
+            hits[#hits + 1] = hit
+            node = CFrame.new(position) * (node - node.p)
+        else
+            return CFrame.new(position)
+        end
+    end
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(Input, GPE)
+    if Settings.ClickTeleport then
+        if GPE then
+            return;
+        end
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local Target = get_target()
+            if Target then
+                game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.Position) * CFrame.new(0, 3, 0)
+            end
+        end
+    end
+end) 
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if Settings.FullBright == true then
+        game:GetService("Lighting").Ambient = Color3.fromRGB(255, 255, 255)
+    end
+end)
+
+namecall = hookfunction(getrawmetatable(game).__namecall, function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+    if self.Name == "SocketEvent" and method == "FireServer" and args[1] == "Update" then
+        return;
+    end
+    return namecall(self, unpack(args))
+end)

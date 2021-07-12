@@ -1,0 +1,87 @@
+_G.Name = "nil"
+pcall(function()
+
+   local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kiwi-i/wallys-ui-fork/master/lib.lua", true))()
+
+   local SettingsFrame = library:CreateWindow('Settings')
+
+   SettingsFrame:Section('Default Keybind is RightControl')
+
+   local SCT = SettingsFrame:Section("NoTwistedHere#1027")
+
+   local function ParseForColor3(str)
+      if (str):find("%d+%s*,%s*%d+%s*,%s*%d+") then
+         local s, e = (str):find("%d+%s*,%s*%d+%s*,%s*%d+");
+         local sub = (str):sub(s, e);
+         local r, g, b;
+         local a, b = (str):find("%d+%s*,");
+         local r1 = (str):sub(a, b);
+         local c, d = (str):find("%d+%s*,", b);
+         local g1 = (str):sub(c, d);
+         local e, f = (str):find("%s*%d+", d);
+         local b1 = (str):sub(e, f);
+         r = tonumber((r1):sub((r1):find("%d+")));
+         g = tonumber((g1):sub((g1):find("%d+")));
+         b = tonumber((b1):sub((b1):find("%d+")));
+         return r, g, b;
+      end
+   end
+
+   local box = SettingsFrame:Box('Name', {
+      flag = "Name";
+      type = 'all';
+   }, function(new, old, enter)
+      _G.Name = new
+   end)
+
+   local box = SettingsFrame:Button('No Shirt', function()
+      _G.ShirtId = 4507342136
+   end)
+
+   local box2 = SettingsFrame:Button('No Pants', function()
+      _G.PantsId = 4124677336
+   end)
+
+   local box3 = SettingsFrame:Box('Hair color (Color3)', {
+      flag = "HairCol";
+      type = 'all';
+   }, function(new, old, enter)
+      _G.TestHair = new
+   end)
+
+   local box4 = SettingsFrame:Box('Skin color (Color3)', {
+      flag = "SkinCol";
+      type = 'all';
+   }, function(new, old, enter)
+      _G.TestSkin = new
+   end)
+
+   namecall = hookfunction(getrawmetatable(game).__namecall, function(self, ...)
+      local method = getnamecallmethod()
+      local args = {...}
+      if self.Name == "CreateCharacter" and method == "FireServer" then
+         if _G.Name then
+            args[2] = _G.Name
+         end
+         if _G.TestHair then
+            local newCol3Hair = Color3.fromRGB(ParseForColor3(_G.TestHair));
+            if newCol3Hair then
+               args[5] = BrickColor.new(newCol3Hair).Number
+            end
+         end
+         if _G.TestSkin then
+            local newCol3Skin = Color3.fromRGB(ParseForColor3(_G.TestSkin));
+            if newCol3Skin then
+               args[6] = BrickColor.new(newCol3Skin).Number
+            end
+         end
+         if _G.ShirtId then
+            args[8] = _G.ShirtId
+         end
+         if _G.PantsId then
+            args[9] = _G.PantsId
+         end
+      end
+      return namecall(self, unpack(args))
+   end)
+end)

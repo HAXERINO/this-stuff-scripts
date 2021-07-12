@@ -1,0 +1,71 @@
+if game then
+    if not game:IsLoaded() then
+        game:Shutdown() -- the script will break if you are not loaded in, and your character must be spawned
+    end
+    if game.PlaceId ~= 20321167 then
+        game:Shutdown()
+    end
+else
+    game:Shutdown()
+end
+
+if getgenv().TSLoaded then
+    return;
+end
+
+getgenv().TSLoaded = true
+WalkSpeed = 18
+JumpPower = 50
+
+local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+
+local LocalCheats = library:CreateWindow("Local Cheats")
+
+LocalCheats:Button("Unlock all badges", function()
+    for i,v in pairs(game:GetService("Workspace").Badges:GetDescendants()) do
+        if v:IsA("TouchTransmitter") then
+            firetouchinterest(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart, v.Parent, 0)
+        end
+    end
+end)
+
+local CharacterCheats = library:CreateWindow("Character Cheats")
+
+CharacterCheats:Slider("WalkSpeed", 5, 200, false, function(Value)
+    WalkSpeed = Value
+    game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = WalkSpeed
+end)
+
+CharacterCheats:Slider("JumpPower", 10, 200, false, function(Value)
+    JumpPower = Value
+    game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = JumpPower
+end)
+
+local Settings = library:CreateWindow("Settings")
+
+Settings:Button("Copy Discord Link", function()
+    setclipboard("https://discord.gg/gz5AX4h")
+end)
+
+Settings:Button("Rejoin Server", function()
+    --syn.queue_on_teleport(wait(20) loadstring(game:HttpGet("https://thisstuff.xyz/Api/WOAHSCRIPTS/1257821635-9356095531/oOAfkpCWzDWsn4CjuLZLZOs3vCf4rgUMhXaJd32VyHSs2tojOCTUKINNTbAuTTCGFrYTyMeBDEIfdo7C0Sp5EnCyxN80pHf5jpqk2xU7f1LAcx2Nt1cZe", true))())
+    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+end)
+
+local MT = getrawmetatable(game)
+local OldNewIndex = MT.__newindex
+setreadonly(MT, false)
+MT.__newindex = newcclosure(function(a, b, c)
+    if not checkcaller() and getcallingscript() then
+        if b == "WalkSpeed" then
+            game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = WalkSpeed
+            return OldNewIndex(a, b, 16)
+        end
+        if b == "JumpPower" then
+            game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = JumpPower
+            return OldNewIndex(a, b, 50)
+        end
+    end
+    return OldNewIndex(a, b, c)
+end)
+setreadonly(MT, true)

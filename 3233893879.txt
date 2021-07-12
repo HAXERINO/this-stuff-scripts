@@ -1,0 +1,370 @@
+--[[
+    Setup
+]]
+
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local Camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+local ESP_Library = loadstring(game:HttpGet("https://kiriot22.com/releases/ESP.lua"))()
+local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
+
+local Client = {}
+Client.Frame = {}
+Client.Network = {}
+Client.Characters = {}
+Client.Hooks = {}
+Client.Modifications = {}
+Client.Hooks.Network = {}
+Client.Hooks.Camera = {}
+Client.Other = {}
+
+for i,v in next, getgc(true) do
+    if type(v) == "table" and rawget(v, "Kitty") then
+        local Networking = debug.getupvalue(getrawmetatable(v).__index, 1)
+        Client.Networking = Networking
+        Client.Network = Networking.Network
+        Client.Characters = Networking.Characters
+    end
+end
+
+Client.Ignore = {Client.Character, Camera, Mouse.TargetFilter}
+Client.Character = Client.Characters:GetCharacter(LocalPlayer) or nil
+
+local Utils = {}
+local Settings = {}
+Settings.ESP = {}
+Settings.Aimbot = {}
+
+
+
+function Utils.FireConnections(Connections, Value)
+    assert(type(Connections) == "table", "Utils.FireConnections :: Connections value is invalid")
+    assert(Value, "Utils.FireConnections :: Fire value is invalid")
+
+    for i,v in next, Connections do
+        v:Fire(Value)
+    end
+end
+
+function Utils.PickRandom(Table)
+    math.randomseed(os.time())
+    return Table[math.random(#Table)]
+end
+
+function Client.Other.GetClosest()
+    local ClosestDistance = 9e150
+    local AimbotTable;
+
+    for i,v in next, workspace:FindFirstChild("Characters"):GetChildren() do
+        local Player = Client.Characters:GetPlayerFromCharacter(v)
+        local Target = "Head"
+        if not Settings.Aimbot.DominateOnly then
+            Target = Utils.PickRandom({"Head", "Chest", "Abdomen"})
+        end
+
+        if Player and Player ~= LocalPlayer and Client.Networking.Teams:GetPlayerTeam(LocalPlayer) ~= Client.Networking.Teams:GetPlayerTeam(Player) and v.Body:FindFirstChild(Target) then
+            local TargetPart = v.Hitbox[Target]
+            local WorldPosition = Camera:WorldToViewportPoint(TargetPart.Position)
+            local Distance = (Vector2.new(WorldPosition.X, WorldPosition.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+
+            local function Finish()
+                if Distance < Settings.Aimbot.Radius and Distance < ClosestDistance then --> it's a bit.. buggy?
+                    ClosestDistance = Distance
+                    AimbotTable = {
+                        ["Distance"] = Distance,
+                        ["Player"] = Player,
+                        ["Character"] = v,
+                        ["Target"] = TargetPart
+                    }
+                end
+            end
+
+            if Settings.Aimbot.NoWallbang and #Camera:GetPartsObscuringTarget({TargetPart.Position}, {Camera, Client.Character, v}) == 0 then
+                Finish()
+            elseif not Settings.Aimbot.NoWallbang then
+                Finish()
+            end
+        end
+    end
+
+    return AimbotTable or nil
+end
+
+--> Esp by kiriot22, edited the bad business example
+
+ESP_Library.Overrides.GetTeam = function(Player)
+    return game:GetService("Teams"):FindFirstChild(Client.Networking.Teams:GetPlayerTeam(Player))
+end
+
+ESP_Library.Overrides.GetPlrFromChar = function(Character)
+    return Client.Characters:GetPlayerFromCharacter(Character)
+end
+
+ESP_Library.Overrides.GetColor = function(Character)
+    local Player = ESP_Library:GetPlrFromChar(Character)
+    if Player then
+        local PlayerTeam = ESP_Library:GetTeam(Player)
+        if PlayerTeam then
+            return PlayerTeam.Color.Value
+        end
+    end
+    return nil
+end
+
+local function CharAdded(Character)
+    local Player = game.Players:FindFirstChild(Character.Name) or ESP_Library:GetPlrFromChar(Character)
+    if not Player or Player == LocalPlayer then
+        return
+    end
+
+    ESP_Library:Add(Character, {
+        Name = Player.Name,
+        Player = Player,
+        PrimaryPart = Character.PrimaryPart or Character:WaitForChild("Root")
+    })
+end
+
+Client.Characters.CharacterAdded:Connect(function(Player, Model)
+    CharAdded(Model)
+    if Player == game.Players.LocalPlayer then
+        Client.Character = Model
+        Client.Other.Mass = Client.Character.Root.Mass
+    end
+end)
+
+for i,v in pairs(workspace.Characters:GetChildren()) do
+    coroutine.wrap(CharAdded)(v)
+end
+
+Client.Character = Client.Characters:GetCharacter(LocalPlayer)
+
+do
+    local Circle = Drawing.new("Circle")
+    Circle.Visible = Settings.Aimbot.Visible or false
+    Circle.Color = Settings.Aimbot.Color or Color3.fromRGB(255, 255, 255)
+    Circle.Thickness = Settings.Aimbot.Thickness or 2
+    Circle.Filled = Settings.Aimbot.Filled or false
+    Circle.Radius = Settings.Aimbot.Radius or 100
+    Circle.NumSides = Settings.Aimbot.NumSides or 100
+    Circle.Transparency = Settings.Aimbot.Transparency or 1
+    Circle.Position = Vector2.new(Mouse.X, Mouse.Y + GuiService:GetGuiInset().Y)
+
+    function Client.Other.Aimbot()
+        Circle.Visible = Settings.Aimbot.Visible or false
+        Circle.Color = Settings.Aimbot.Color or Color3.fromRGB(255, 255, 255)
+        Circle.Thickness = Settings.Aimbot.Thickness or 2
+        Circle.Filled = Settings.Aimbot.Filled or false
+        Circle.NumSides = Settings.Aimbot.NumSides or 100
+        Circle.Radius = Settings.Aimbot.Radius or 100
+    end
+
+    UserInputService.InputChanged:Connect(function(Input, GPE)
+        if Input.UserInputType == Enum.UserInputType.MouseMovement then
+            Circle.Position = Vector2.new(Mouse.X, Mouse.Y + GuiService:GetGuiInset().Y)
+        end
+    end)
+end
+
+do
+    function Client.Other.ESP()
+        ESP_Library:Toggle(Settings.ESP.Enabled or false)
+        ESP_Library.Boxes = Settings.ESP.Boxes or false
+        ESP_Library.Tracers = Settings.ESP.Tracers or false
+        --ESP_Library.Color = Settings.ESP.Color
+        ESP_Library.Names = Settings.ESP.Names or false
+        ESP_Library.TeamColor = Settings.ESP.TeamColor or false
+        ESP_Library.TeamMates = Settings.ESP.TeamMates or false
+    end
+end
+
+do
+    local Hook;
+    Hook = hookfunction(Client.Networking.Items.GetConfig, function(...)
+        local Returned = Hook(...)
+        local Arguments = {...}
+        if Arguments[2]:IsDescendantOf(Client.Characters:GetCharacter(LocalPlayer)) then
+
+            if not table.find(Client.Modifications, Arguments[2].Name) then
+                Client.Modifications[Arguments[2].Name] = Returned
+            end
+            
+            local FireRate = rawget(Returned, "FireRate")
+            local MoveSpeed = rawget(Returned, "MoveSpeed")
+            if Settings.FireRate then
+                FireRate = 2000
+                MoveSpeed = 5
+            end
+
+            if Settings.NoSpread then
+                for i,v in next, Returned["FirstPersonOffset"] do
+                    v = CFrame.new(0, 0, 0)
+                end
+                for i,v in next, Returned["ThirdPersonOffset"] do
+                    v = CFrame.new(0, 0, 0)
+                end
+            end
+        end
+        return Returned
+    end)
+end
+
+--[[
+    Hooks/ Core
+]]
+
+Client.Hooks["Camera/Recoil/Fire"] = Client.Networking.Camera.Recoil.Fire
+Client.Hooks["Network/Fire"] = Client.Network.Fire
+Client.Hooks["Projectiles/InitProjectile"] = Client.Networking.Projectiles.InitProjectile
+
+Client.Network.Fire = function(...)
+    local Arguments = {...}
+    if Arguments[1] == "Admin" then
+        return;
+    end
+    if Settings.Aimbot.Enabled and Arguments[2] == "Item_Paintball" and Arguments[3] == "Shoot" then
+        local Closest = Client.Other.GetClosest()
+        if type(Closest) == "table" then
+            --warn(Closest["Player"])
+            Arguments[5] = Closest["Target"].Position + Vector3.new(math.random(), math.random(), math.random())
+        end
+    end
+    if Settings.Aimbot.Enabled and Arguments[2] == "Projectiles" then
+        local Closest = Client.Other.GetClosest()
+        if type(Closest) == "table" then
+            --warn(Closest["Player"])
+            Arguments[6] = Closest["Target"].Position + Vector3.new(math.random(), math.random(), math.random())
+            Arguments[5] = Closest["Target"]
+            Arguments[8] = Closest["Target"]
+        end
+    end
+    return Client.Hooks["Network/Fire"](unpack(Arguments))
+end
+
+Client.Networking.Camera.Recoil.Fire = function(...)
+    if Settings.NoRecoil then
+        return;
+    end
+    return Client.Hooks["Camera/Recoil/Fire"](...)
+end
+
+spawn(function()
+    while wait() do
+        pcall(function()
+            if Settings.InfiniteJump and UserInputService:IsKeyDown(Enum.KeyCode.Space) and Client.Character then
+                Client.Character.Root.Velocity = Vector3.new(Client.Character.Root.Velocity.X, 0, Client.Character.Root.Velocity.Z)
+                Client.Character.Root.Velocity = Client.Character.Root.Velocity + Vector3.new(0, 36, 0)
+                wait(0.125)
+            end
+        end)
+        if Settings.BunnyHop and (Settings.InfiniteJump and not UserInputService:IsKeyDown(Enum.KeyCode.Space)) and Client.Character then
+            Utils.FireConnections(getconnections(Client.Networking.Input.Began), "Jump")
+        end
+    end
+end)
+
+--[[
+    Features
+]]
+
+local UI_Library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+local Esp = UI_Library:CreateWindow("Esp")
+local SilentAimbot = UI_Library:CreateWindow("Aimbot")
+local Window = UI_Library:CreateWindow("Bad Buisness")
+local SettingsT = UI_Library:CreateWindow("Settings")
+local LocalCheats = Window:Folder("Local Cheats")
+local CharacterCheats = Window:Folder("Character Cheats")
+
+Esp:Toggle("ESP", function(Value)
+    Settings.ESP.Enabled = Value
+    Client.Other.ESP()
+end):Set(Settings.ESP.Enabled)
+
+Esp:Toggle("Toggle Boxes", function(Value)
+    Settings.ESP.Boxes = Value
+    Client.Other.ESP()
+end):Set(Settings.ESP.Boxes)
+
+Esp:Toggle("Toggle Tracers", function(Value)
+    Settings.ESP.Tracers = Value
+    Client.Other.ESP()
+end):Set(Settings.ESP.Tracers)
+
+Esp:Toggle("Show TeamMates", function(Value)
+    Settings.ESP.TeamMates = Value
+    Client.Other.ESP()
+end):Set(Settings.ESP.TeamMates)
+
+Esp:Toggle("Show Team", function(Value)
+    Settings.ESP.Team = Value
+    Client.Other.ESP()
+end):Set(Settings.ESP.Team)
+
+Esp:Toggle("Show Name", function(Value)
+    Settings.ESP.Names = Value
+    Client.Other.ESP()
+end):Set(Settings.ESP.Names)
+
+----
+
+SilentAimbot:Toggle("Aimbot", function(Value)
+    Settings.Aimbot.Enabled = Value
+end):Set(Settings.Aimbot.Enabled)
+
+SilentAimbot:Toggle("Circle Visible", function(Value)
+    Settings.Aimbot.Visible = Value
+    Client.Other.Aimbot()
+end):Set(Settings.Aimbot.Visible)
+
+SilentAimbot:Toggle("Circle Filled", function(Value)
+    Settings.Aimbot.Filled = Value
+    Client.Other.Aimbot()
+end):Set(Settings.Aimbot.Filled)
+
+SilentAimbot:Toggle("Visibility Check", function(Value)
+    Settings.Aimbot.NoWallbang = Value
+end):Set(Settings.Aimbot.NoWallbang)
+
+SilentAimbot:Toggle("Headshot only", function(Value)
+    Settings.Aimbot.DominateOnly = Value
+end):Set(Settings.Aimbot.DominateOnly)
+
+SilentAimbot:ColorPicker("Circle Color", Color3.fromRGB(255, 255, 255), function(Value)
+    Settings.Aimbot.Color = Value
+    Client.Other.Aimbot()
+end)
+
+SilentAimbot:Slider("Fov Radius", 3, 1000, function(Value)
+    Settings.Aimbot.Radius = Value
+    Client.Other.Aimbot()
+end):Set(Settings.Aimbot.Radius)
+
+SilentAimbot:Slider("NumSides", 3, 500, function(Value)
+    Settings.Aimbot.NumSides = Value
+    Client.Other.Aimbot()
+end):Set(Settings.Aimbot.NumSides)
+
+SilentAimbot:Slider("Circle Thickness", 1, 300, function(Value)
+    Settings.Aimbot.Thickness = Value
+    Client.Other.Aimbot()
+end):Set(Settings.Aimbot.Thickness)
+
+----
+
+LocalCheats:Toggle("No Recoil", function(Value)
+    Settings.NoRecoil = Value
+end):Set(Settings.NoRecoil)
+
+----
+
+CharacterCheats:Toggle("Bunny Hop", function(Value)
+    Settings.BunnyHop = Value
+end):Set(Settings.BunnyHop)
+
+CharacterCheats:Toggle("Infinite Jump", function(Value)
+    Settings.InfiniteJump = Value
+end):Set(Settings.InfiniteJump)
+
+----
+
+SettingsT:Label("ESP Library by Kiriot22")

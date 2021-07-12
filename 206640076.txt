@@ -1,0 +1,107 @@
+function getPlayer(shortcut)
+    local Player = nil
+    local Players = game.Players:GetPlayers()
+    for i = 1, #Players do
+        if string.lower(string.sub(Players[i].Name, 1, string.len(shortcut))) == string.lower(shortcut) then
+            Player = Players[i]
+            break
+        end
+    end
+    return Player
+end
+
+local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+local CharacterCheats = library:CreateWindow("Character Cheats")
+
+local oldFOV = workspace.CurrentCamera.FieldOfView
+local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
+
+CharacterCheats:Slider("FOV", 60, 120, function(Value)
+    workspace.CurrentCamera.FieldOfView = Value;
+end)
+CharacterCheats:Slider('WalkSpeed', 16, 800, function(Value)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+end)
+CharacterCheats:Slider('JumpPower', 50, 800, function(Value)
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+end)
+
+CharacterCheats:Button("Collect all Collectibles", function()
+    local old = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+    for i,v in pairs(game:GetService("Workspace").ViewModels:GetChildren()) do
+        if v.Name == "Collectible" then
+            game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame
+            wait()
+        end
+    end
+    game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = old
+end)
+
+CharacterCheats:Box("Player Name", function(Value)
+    local Obj22 = getPlayer(Value)
+    wait(0.1)
+    game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = game.Players:FindFirstChild(Obj22.Name).Character:FindFirstChild("HumanoidRootPart").CFrame
+end)
+
+CharacterCheats:Toggle("Click Teleport", function(Value)
+    ClickTeleport = Value
+end)
+
+local Settings = library:CreateWindow("Settings")
+Settings:Button("Copy Discord Link", function()
+    setclipboard(game:HttpGet("https://thisstuff.xyz/rawdiscord.txt"))
+end)
+
+Settings:Button("Rejoin Server", function()
+    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+end)
+
+local get_target = function() -- thanks unrealskill for making this function (https://v3rmillion.net/showthread.php?tid=620391)
+    local Node = CFrame.new(Mouse.UnitRay.Origin)
+    local Hits = { }
+    while Node do
+        local ray = Mouse.UnitRay
+        ray = Ray.new(ray.Origin, ray.Direction * 1000)
+        local Hit, Position = workspace:FindPartOnRayWithIgnoreList(ray, {
+            game:GetService("Players").LocalPlayer.Character,
+            unpack(Hits)
+        })
+        if Hit.Transparency == 0 then
+            return #Hits == 0 and Mouse.Hit or CFrame.new(Position)
+        end
+        if Hit then
+            Hits[#Hits + 1] = Hit
+            Node = CFrame.new(Position) * (Node - Node.p)
+        else
+            return CFrame.new(Position)
+        end
+    end
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(Input, GPE)
+    if GPE then
+        return;
+    end
+    if ClickTeleport and Input.UserInputType == Enum.UserInputType.MouseButton1 then
+        local Target = get_target()
+        if Target then
+            game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = Target * CFrame.new(0, 3, 0)
+        end
+    end
+end) 
+
+local fireworks = require(game.ReplicatedStorage.Modules.mFireworks)
+for i,v in pairs(game.Workspace:GetDescendants()) do
+    if v.Name == "LaunchPipe" or v.Name == "Launcher" then
+        if math.random(1,2) == 2 then
+            fireworks.Launch(v)
+        else
+            wait(2)
+            fireworks.Launch(v)
+        end
+    end
+end
+
+while wait(0.1) do
+    game.Players.LocalPlayer.Character.VelocityFix.Disabled = true
+end

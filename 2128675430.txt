@@ -1,0 +1,20 @@
+if getgenv().TSLoaded then
+    return
+end
+
+getgenv().TSLoaded = true
+getgenv().IsEnabled = true
+
+game:GetService("ReplicatedStorage").JobSystem.OnShift:FireServer(game.Teams["Royal Mail"])
+workspace.JobSystem.Jobs.RoyalMail.getJob.ClickDetector.MaxActivationDistance = math.huge
+workspace.JobSystem.Jobs.RoyalMail.Dropoff.ClickDetector.MaxActivationDistance = math.huge
+fireclickdetector(workspace.JobSystem.Jobs.RoyalMail.getJob.ClickDetector)
+while wait() do
+    if getgenv().IsEnabled then
+        for i,v in pairs(workspace.JobSystem.Jobs.RoyalMail.Pickups:GetChildren()) do
+            game:GetService("ReplicatedStorage").JobSystem.confirmPost:FireServer(v)
+            wait()
+            fireclickdetector(workspace.JobSystem.Jobs.RoyalMail.Dropoff.ClickDetector)
+        end
+    end
+end

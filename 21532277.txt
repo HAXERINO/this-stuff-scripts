@@ -1,0 +1,206 @@
+local function StarterPlace()
+    OwnAllDLC = false
+
+    local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+    local LocalCheats = library:CreateWindow("Local Cheats")
+    LocalCheats:Toggle("All DLCs", function(Value)
+        OwnAllDLC = Value
+    end)
+
+    local Settings = library:CreateWindow("Settings")
+
+    Settings:Button("Copy Discord Link", function()
+        setclipboard(game:HttpGet("https://thisstuff.xyz/rawdiscord.txt"))
+    end)
+
+    Settings:Button("Rejoin Server", function()
+        --syn.queue_on_teleport(wait(20) loadstring(game:HttpGet("https://thisstuff.xyz/Api/WOAHSCRIPTS/1257821635-9356095531/oOAfkpCWzDWsn4CjuLZLZOs3vCf4rgUMhXaJd32VyHSs2tojOCTUKINNTbAuTTCGFrYTyMeBDEIfdo7C0Sp5EnCyxN80pHf5jpqk2xU7f1LAcx2Nt1cZe", true))())
+        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+    end)
+    
+    namecall = hookfunction(getrawmetatable(game).__namecall, function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        if OwnAllDLC and self.Name == "OwnsDLC" and method == "InvokeServer" then
+            return true
+        end
+        return namecall(self, unpack(args))
+    end)
+end
+
+local function GamePlace()
+    PlayerToKick = nil
+    OwnAllDLC = false
+    NoWait = false
+    InfiniteAmmo = false
+    InfiniteBBACC = false
+    GodMode = false
+    InfiniteStamina = false
+    GodMode = false
+    NoClip = false
+
+    local library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+
+    local Malicious = library:CreateWindow("Malicious")
+
+    Malicious:Box("Player To Kick", function(Value)
+        PlayerToKick = Value
+    end)
+
+    Malicious:Button("Kick Player", function()
+        if PlayerToKick and game:GetService("Players"):FindFirstChild(PlayerToKick) then
+            game:GetService("ReplicatedStorage").RS_Package.Remotes.ForceKick:FireServer(PlayerToKick)
+        end
+    end)
+
+    Malicious:Button("Force Reset", function()
+        game:GetService("ReplicatedStorage").RS_Package.Remotes.ForceReset:FireServer()
+    end)
+
+    local LocalCheats = library:CreateWindow("Local Cheats")
+
+    LocalCheats:Toggle("All DLCs", function(Value)
+        OwnAllDLC = Value
+    end)
+
+    LocalCheats:Toggle("No Wait", function(Value)
+        NoWait = Value
+    end)
+
+    LocalCheats:Button("Break Glass", function()
+        for i,v in pairs(workspace:GetDescendants()) do
+            if v.Name == "Glass" then
+                game:GetService("ReplicatedStorage").RS_Package.Assets.Remotes.HitObject:FireServer(v, true)
+            end
+        end
+    end)
+
+    LocalCheats:Button("Collect All Lootables", function()
+        local old = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+        for i,v in pairs(workspace.Lootables:GetChildren()) do
+            wait()
+            if v:FindFirstChildWhichIsA("Part") then
+                game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = v:FindFirstChildWhichIsA("Part").CFrame
+            elseif v:FindFirstChildWhichIsA("UnionOperation") then
+                game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = v:FindFirstChildWhichIsA("UnionOperation").CFrame
+            end
+            game:GetService("ReplicatedStorage").RS_Package.Remotes.StartInteraction:FireServer(v)
+            wait()
+            game:GetService("ReplicatedStorage").RS_Package.Remotes.CompleteInteraction:FireServer(v)
+        end
+        for i,v in pairs(workspace:GetDescendants()) do
+            if (string.find(string.lower(v.Name), "jewl")) or v.Name == "Cash Register" or v.Name == "Money" or v.Name == "PokerChips" or (string.find(string.lower(v.Name), "Safe") and v.Name ~= "Safe") then
+                if v.Name == "Jewels" then
+                    game:GetService("ReplicatedStorage").RS_Package.Remotes.StartInteraction:FireServer(v)
+                    wait()
+                    game:GetService("ReplicatedStorage").RS_Package.Remotes.CompleteInteraction:FireServer(v)
+                end
+                wait()
+                if v:FindFirstChildWhichIsA("Part") then
+                    game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = v:FindFirstChildWhichIsA("Part").CFrame
+                elseif v:FindFirstChildWhichIsA("UnionOperation") then
+                    game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = v:FindFirstChildWhichIsA("UnionOperation").CFrame
+                end
+                game:GetService("ReplicatedStorage").RS_Package.Remotes.StartInteraction:FireServer(v)
+                game:GetService("ReplicatedStorage").RS_Package.Remotes.CompleteInteraction:FireServer(v)
+            end
+        end
+        game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = old
+    end)
+
+    LocalCheats:Button("Destroy All Cameras", function()
+        for i,v in pairs(workspace:GetDescendants()) do
+            if string.find(string.lower(v.Name), "camera") then
+                game:GetService("ReplicatedStorage").RS_Packages.Assets.Remotes.HitObject:FireServer(v.Hitbox, true)
+            end
+        end
+    end)
+
+    local CharacterCheats = library:CreateWindow("Character Cheats")
+
+    CharacterCheats:Button("Infinite Stamina", function()
+        InfiniteStamina = true
+    end)
+
+    CharacterCheats:Toggle("Infinite Ammo", function(Value)
+        InfiniteAmmo = Value
+    end)
+
+    CharacterCheats:Button("Infinite Body Bags", function(Value)
+        InfiniteBB = Value
+    end)
+
+    CharacterCheats:Button("Infinite Cabe Ties", function(Value)
+        InfiniteCC = Value
+    end)
+
+    CharacterCheats:Toggle("God Mode", function(Value)
+        GodMode = Value
+    end)
+
+    CharacterCheats:Toggle("No Clip", function(Value)
+        NoClip = Value
+    end)
+
+    local Settings = library:CreateWindow("Settings")
+
+    Settings:Button("Copy Discord Link", function()
+        setclipboard(game:HttpGet("https://thisstuff.xyz/rawdiscord.txt"))
+    end)
+
+    Settings:Button("Rejoin Server", function()
+        --syn.queue_on_teleport(wait(20) loadstring(game:HttpGet("https://thisstuff.xyz/Api/WOAHSCRIPTS/1257821635-9356095531/oOAfkpCWzDWsn4CjuLZLZOs3vCf4rgUMhXaJd32VyHSs2tojOCTUKINNTbAuTTCGFrYTyMeBDEIfdo7C0Sp5EnCyxN80pHf5jpqk2xU7f1LAcx2Nt1cZe", true))())
+        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+    end)
+
+    namecall = hookfunction(getrawmetatable(game).__namecall, function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        if OwnAllDLC and self.Name == "OwnsDLC" and method == "InvokeServer" then
+            return true
+        elseif NoWait and self.Name == "StartInteraction" and method == "FireServer" and args[1] ~= "CitizenMoving" then
+            wait()
+            game:GetService("ReplicatedStorage").RS_Package.Remotes.CompleteInteraction:FireServer(args[1])
+        end
+        return namecall(self, unpack(args))
+    end)
+
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if InfiniteAmmo then
+            game:GetService("Players").LocalPlayer.Character.PrimaryAmmo.Value = 9e10
+            game:GetService("Players").LocalPlayer.Character.SecondaryAmmo.Value = 9e10
+            game:GetService("Players").LocalPlayer.Character.PrimaryAmmoMax.Value = 9e10
+            game:GetService("Players").LocalPlayer.Character.SecondaryAmmoMax.Value = 9e10
+        end
+        if InfiniteBB then
+            game:GetService("Players").LocalPlayer.Character.BodyBags.Value = 9e10
+        end
+        if InfiniteCC then
+            game:GetService("Players").LocalPlayer.Character.CableTies.Value = 9e10
+        end
+        if GodMode then
+            game:GetService("Players").LocalPlayer.Character.Health.Value = 9e10
+            game:GetService("Players").LocalPlayer.Character.Health.Total.Value = 9e10
+        end
+        if InfiniteStamina then
+            game:GetService("Players").LocalPlayer.Character.MaxStamina.Value = math.huge
+            game:GetService("Players").LocalPlayer.Character.Stamina.Value = math.huge
+        end
+        if NoClip then
+            game:GetService("Players").LocalPlayer.Character.Humanoid:ChangeState(11)
+        end
+    end)
+end
+
+if game then
+    if not game:IsLoaded() then
+        game:Shutdown()
+    end
+    if game.PlaceId ~= 21532277 then
+        GamePlace()
+    else
+        StarterPlace()
+    end
+else
+    game:Shutdown()
+end
