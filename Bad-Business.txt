@@ -267,7 +267,7 @@ end)
     Features
 ]]
 
-local UI_Library = loadstring(game:HttpGet("https://cdn.thisstuff.xyz/Api/Library/Main", true))()
+local UI_Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/HAXERINO/this-stuff-scripts/main/ThisStuff-Api-Library.txt", true))()
 local Esp = UI_Library:CreateWindow("Esp")
 local SilentAimbot = UI_Library:CreateWindow("Aimbot")
 local Window = UI_Library:CreateWindow("Bad Buisness")
